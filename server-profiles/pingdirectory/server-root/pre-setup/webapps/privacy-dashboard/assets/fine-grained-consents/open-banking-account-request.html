@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.12/handlebars.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore-min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js" charset="utf-8"></script>
+
+    <link integrity="" rel="stylesheet" href="../vendor-42a99e6b8007efc4d84011808077a9a6.css">
+    <link integrity="" rel="stylesheet" href="../privacy-dashboard-61aa97c3bda5fea93756192c391dbed3.css">
+    <link integrity="" rel="stylesheet" href="iframe.css">
+    <script src="iframe.js" charset="utf-8" integrity="sha256-WzIRiHvCaSAfdmPXquMipyxSiEWc/3c857eSvkLM6Z0= sha512-DhDEvkMbamAKBETWiqhgArbBuAIdiy/lnSogUknaF+YHQjGRwnyGkC8OY937CL+D780jal+lzrwpTU1C5qOpwQ==" ></script>
+
+    <style>
+      #cluster-list .permissions-list {
+        list-style: disc;
+      }
+    </style>
+
+  </head>
+  <body id="consent-container">
+
+    <section class="page-group">
+      <h3 class="text-section-title">Shared Accounts</h3>
+      <div class="page-group-content">
+        <form id="account-list-form" class="stack-sm"></form>
+      </div>
+    </section>
+
+    <section class="page-group">
+      <h3 class="text-section-title">Permissions</h3>
+      <div class="page-group-content">
+        <ul id="cluster-list"></ul>
+      </div>
+    </section>
+
+    <section class="page-group">
+      <h3 class="text-section-title">Duration</h3>
+      <div class="page-group-content text-body">
+        <div id="duration-description"></div>
+      </div>
+    </section>
+
+    <script id="bank-account-row-template" type="text/x-handlebars-template">
+      <div class="input-row" style="margin-bottom: 0;">
+        <label class="input-checkbox stacked">
+          <span class="label-text" data-id="label"><strong>#{{id}}&mdash;</strong><small class="text-body">{{name}} {{identification}}</small></span>
+          <input data-account-id="{{id}}" type="checkbox">
+          <div class="icon"></div>
+        </label>
+      </div>
+    </script>
+
+    <script id="cluster-list-item-template" type="text/x-handlebars-template">
+      <li class="collapsible-section condensed">
+        <div class="collapsible-section-title collapsible-link left">{{cluster-name}}</div>
+        <div class="collapsible-section-content">
+          <ul class="permissions-list">
+            {{#each permissions-list}}
+            <li>{{this}}</li>
+            {{/each}}
+          </ul>
+        </div>
+      </li>
+    </script>
+
+    <script id="duration-description-template" type="text/x-handlebars-template">
+      Your account(s) data is shared through {{date}}
+    </script>
+
+    <script type="text/javascript">
+      var accountsUrl = "https://babbtx-aspsp.herokuapp.com/OpenBanking/v2/accounts";
+
+      var accountRowSource = document.getElementById("bank-account-row-template").innerHTML;
+      var accountRowTemplate = Handlebars.compile(accountRowSource);
+      var $accountRowContainer = $("#account-list-form");
+
+      // Accounts is an array of:
+      //     {"Currency":"GBP",
+      //     "AccountType":"Personal",
+      //     "AccountId":1,
+      //     "AccountSubType":"Savings",
+      //     "Account":
+      //       {"SchemeName":"SortCodeAccountNumber",
+      //       "Identification":"86323686687550"}
+      //     }
+      function renderAccounts(Accounts) {
+        $accountRowContainer.empty();
+        Accounts.forEach(function(Account) {
+          var account = {id: Account.AccountId, name: Account.AccountSubType, identification: Account.Account.Identification};
+          var accountRowHtml = accountRowTemplate(account);
+          $accountRowContainer.append(accountRowHtml);
+        });
+      }
+
+      var clusterRowSource = document.getElementById("cluster-list-item-template").innerHTML;
+      var clusterRowTemplate = Handlebars.compile(clusterRowSource);
+      var $clusterRowContainer = $("#cluster-list");
+
+      // Map of API permission to the "data cluster" and the "permission description"
+      var permissionsToClusters = {
+        ReadAccountsBasic: {
+          cluster: "Your Account Details",
+          permission: "Any other name by which you refer to this account"
+        },
+        ReadAccountsDetail: {
+          cluster: "Your Account Details",
+          permission: "Your account name, number and sort-code"
+        },
+        ReadBalances: {
+          cluster: "Your Account Details",
+          permission: "Your account balance"
+        },
+        ReadBeneficiariesBasic: {
+          cluster: "Your Regular Payments",
+          permission: "Payee agreements you have set up"
+        },
+        ReadBeneficiariesDetail: {
+          cluster: "Your Regular Payments",
+          permission: "Details of Payee agreements you have set up"
+        },
+        ReadDirectDebits: {
+          cluster: "Your Regular Payments",
+          permission: "Your Direct Debits"
+        },
+        ReadStandingOrdersBasic: {
+          cluster: "Your Regular Payments",
+          permission: "Your Standing Orders"
+        },
+        ReadStandingOrdersDetail: {
+          cluster: "Your Regular Payments",
+          permission: "Details of your Standing Orders"
+        },
+        ReadTransactionsCreditsBasic: {
+          // synthesized from ReadTransactionsBasic and ReadTransactionsCredits
+          cluster: "Your Account Transactions",
+          permission: "Your incoming transactions"
+        },
+        ReadTransactionsDebitsBasic: {
+          // synthesized from ReadTransactionsBasic and ReadTransactionsDebits
+          cluster: "Your Account Transactions",
+          permission: "Your outgoing transactions"
+        },
+        ReadTransactionsCreditsDetail: {
+          // synthesized from ReadTransactionsDetail and ReadTransactionsCredits
+          cluster: "Your Account Transactions",
+          permission: "Details of your incoming transactions"
+        },
+        ReadTransactionsDebitsDetail: {
+          // synthesized from ReadTransactionsDetail and ReadTransactionsDebits
+          cluster: "Your Account Transactions",
+          permission: "Details of your outgoing transactions"
+        },
+        ReadStatementsBasic: {
+          cluster: "Your Statements",
+          permission: "Information contained in your statement"
+        },
+        ReadStatementsDetail: {
+          cluster: "Your Statements",
+          permission: "Details of information contained in your statement"
+        },
+        ReadProducts: {
+          cluster: "Your Account Features and Benefits",
+          permission: "Product details - fees, charges, interest, benefits/rewards"
+        },
+        ReadOffers: {
+          cluster: "Your Account Features and Benefits",
+          permission: "Offers available on your account"
+        },
+        ReadParty: {
+          cluster: "Your contact details",
+          permission: "Your address, telephone numbers and email address as held by your bank/card issuer"
+        },
+        ReadScheduledPaymentsBasic: {
+          cluster: "Your Regular Payments",
+          permission: "Recurring and future dated payments"
+        },
+        ReadScheduledPaymentsDetail: {
+          cluster: "Your Regular Payments",
+          permission: "Details of recurring and future dated payments"
+        },
+        ReadPAN: {
+          cluster: "Your Account Details",
+          permission: "Your card number"
+        }
+      };
+
+
+      // toggle expanding section open/closed
+      $("#consent-container").on("click", ".collapsible-section", function() {
+        var $this = $(this);
+        $this.find(".collapsible-section-title").toggleClass("open");
+        $this.toggleClass("open");
+        App.resize();
+      });
+
+
+      // combine transactions and credit/debit
+      function combinePermissions(permissions) {
+        var needsCombining = _.partial(_.include, ["ReadTransactionsBasic", "ReadTransactionsDetail", "ReadTransactionsCredits", "ReadTransactionsDebits"]);
+        var newPermissions = _.reject(permissions, needsCombining);
+        if (_.any(permissions, needsCombining)) {
+          if (_.include(permissions, "ReadTransactionsBasic")) {
+            if (_.include(permissions, "ReadTransactionsCredits")) {
+              newPermissions.push("ReadTransactionsCreditsBasic");
+            }
+            if (_.include(permissions, "ReadTransactionsDebits")) {
+              newPermissions.push("ReadTransactionsDebitsBasic");
+            }
+          }
+          if (_.include(permissions, "ReadTransactionsDetail")) {
+            if (_.include(permissions, "ReadTransactionsCredits")) {
+              newPermissions.push("ReadTransactionsCreditsDetail");
+            }
+            if (_.include(permissions, "ReadTransactionsDebits")) {
+              newPermissions.push("ReadTransactionsDebitsDetail");
+            }
+          }
+        }
+        return newPermissions;
+      }
+
+      // from something like this:
+      // ["ReadAccountsDetail", "ReadBalances", "ReadTransactionsDetail", "ReadTransactionsCredits", "ReadTransactionsDebits"]
+      //
+      //
+      // var clustersAndPermissions = [
+      //   {
+      //     cluster: "Your Account Details",
+      //     permissions: ["Your account name, number and sort-code", "Your account balance"]
+      //   },
+      //   {
+      //     cluster: "Your Account Transactions",
+      //     permissions: ["Details of your incoming transactions", "Details of your outgoing transactions"]
+      //   }
+      // ];
+
+      function createClustersAndPermissions(permissions) {
+        var mapped = {};
+        _.chain(permissions)
+          .map(function(permission) {
+            return permissionsToClusters[permission];
+          })
+          .select(_.identity)
+          .each(function(clusterAndPermission) {
+            var cluster = clusterAndPermission.cluster;
+            mapped[cluster] = mapped[cluster] || {cluster: cluster, permissions: []};
+            mapped[cluster].permissions.push(clusterAndPermission.permission);
+          });
+        return _.values(mapped);
+      }
+
+      function renderPermissions(consentDetails) {
+        var permissions = consentDetails.accountRequest.Data.Permissions;
+        permissions = combinePermissions(permissions);
+        var clustersAndPermissions = createClustersAndPermissions(permissions);
+        clustersAndPermissions.forEach(function(cluster) {
+          var clusterRowHtml = clusterRowTemplate({"cluster-name": cluster.cluster, "permissions-list": cluster.permissions});
+          $clusterRowContainer.append(clusterRowHtml);
+        });
+      }
+
+      var durationDescriptionSource = document.getElementById("duration-description-template").innerHTML;
+      var durationDescriptionTemplate = Handlebars.compile(durationDescriptionSource);
+      var $durationDescriptionContainer = $("#duration-description");
+
+      function renderDuration(consentDetails) {
+        var expiry = moment(consentDetails.accountRequest.Data.ExpirationDateTime);
+        var html = durationDescriptionTemplate({date: expiry.format('D MMMM YYYY')});
+        $durationDescriptionContainer.html(html);
+      }
+
+      function selectAccounts(consentDetails) {
+        var accountIds = consentDetails.accountIds || [];
+        accountIds.forEach(function(accountId) {
+          $("#account-list-form input[type=checkbox][data-account-id=" + accountId + "]").prop("checked", true);
+        });
+      }
+
+      // default consent permissions aren't actually a thing in OpenBanking
+      // the AISP stages its intent and then the user authorizes it, that's how it works.
+      // this is here to make for easier demos where the user can create a consent all by themselves.
+      var defaultConsentDetails = {
+        accountRequest: {
+          Data: {
+            Permissions: ["ReadAccountsBasic", "ReadBalances", "ReadTransactionsBasic", "ReadTransactionsCredits", "ReadTransactionsDebits"],
+            ExpirationDateTime: moment().add(1, 'year').toISOString(),
+            TransactionFromDateTime: moment().subtract(6, 'months').toISOString(),
+            TransactionToDateTime: moment().add(6, 'months').toISOString()
+          },
+          Risk: {
+          }
+        }
+      };
+
+      var origConsentDetails;
+
+      // this script runs after the consent records are loaded by the parent frame
+      // it renders the permissions authorized by the consent record
+      // which includes the selected accounts, the permissions, and timeframe
+      App.onInitialize(function (consentDetails) {
+        consentDetails = consentDetails || defaultConsentDetails;
+        origConsentDetails = consentDetails;
+        renderPermissions(consentDetails);
+        renderDuration(consentDetails);
+        App.getJSON(accountsUrl)
+          .done(function (data) {
+            renderAccounts(data.Data.Account);
+            selectAccounts(consentDetails);
+            App.resize();
+          })
+          .fail(function (data, status) {
+            // TODO display error
+            debugger;
+          });
+      });
+
+      // Map of API permission to a detailed description.
+      // TODO this isn't being used yet
+      var permissionsToDetails = {
+        ReadAccountsBasic: "Currency of the account, Nickname of account (E.g. ‘Jakes Household account’)",
+        ReadAccountsDetail: "Account Name, Sort Code, Account Number, IBAN, Roll Number (used for Building Society) (plus all data provided in Accounts Basic)",
+        ReadBalances: "Amount, Currency, Credit/Debit, Type of Balance, Date/Time, Credit Line",
+        ReadBeneficiariesBasic: "List of Beneficiaries",
+        ReadBeneficiariesDetail: "Details of Beneficiaries account information (Name, Sort Code, Account) (plus all data provided in Beneficiaries Basic)",
+        ReadDirectDebits: "Mandate info, Status, Name, Previous payment information",
+        ReadStandingOrdersBasic: "Standing Orders Info, Frequency, Creditor Reference Info, First/Next/Final Payment info",
+        ReadStandingOrdersDetail: "Details of Creditor Account Information (Name, Sort Code, Account), plus Details of Creditor Account Information (Name, Sort Code, Account)",
+        ReadTransactionsCreditsBasic: "Transaction Information on payments made into the customer’s account (Reference, Amount, Status, Booking Data Info, Value Date info, Transaction Code). Does not include information about the entity that made the payment",
+        ReadTransactionsDebitsBasic: "Transaction Information on payments made from the customer’s account (Reference, Amount, Status, Booking Data Info, Value Date info, Transaction Code). Does not include information about the entity destination of the payment",
+        ReadTransactionsCreditsDetail: "Transaction Information on payments made into the customer’s account (Reference, Amount, Status, Booking Data Info, Value Date info, Transaction Code). Includes information about the entity that made the payment",
+        ReadTransactionsDebitsDetail: "Transaction Information on payments made from the customer’s account (Reference, Amount, Status, Booking Data Info, Value Date info, Transaction Code). Includes information about the entity desination of the payment",
+        ReadStatementsBasic: "All statement information excluding specific amounts related to various balance types, payments due etc.",
+        ReadStatementsDetail: "All statement information including specific amounts related to various balance types, payments due etc.",
+        ReadProducts: "Refers to customer account product details defined in the Open data API ( the fees, charges, interest, benefits/rewards)",
+        ReadOffers: "Balance transfer, promotional rates, limit increases, start & end dates",
+        ReadParty: "Address, telephone numbers and email address as held by your bank/card issuer, party type (sole/joint etc.) ",
+        ReadScheduledPaymentsBasic: "Scheduled dates, amount, reference. Does not include information about the beneficiary",
+        ReadScheduledPaymentsDetail: "Scheduled dates, amount, reference. Includes information about the beneficiary",
+        ReadPAN: "PAN masked or unmasked depending on how ASPSP displays online currently",
+      };
+
+      // send back updated consent details
+      // when the checkboxes change selection
+      $("#account-list-form").on("change", "input[type=checkbox]", function() {
+        var accountIds = [];
+        $("#account-list-form input[type=checkbox]").each(function() {
+          var $elt = $(this);
+          if ($elt.prop("checked")) {
+            accountIds.push($elt.data("account-id"));
+          }
+        });
+        var newConsentDetails = _.extend({}, origConsentDetails, {accountIds: accountIds});
+        App.saveConsentDetails(newConsentDetails);
+      });
+    </script>
+  </body>
+</html>

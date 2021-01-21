@@ -1,0 +1,208 @@
+# Configuration changes to bring source (config-postSetup.gz) to target (config.ldif)
+# Comparison options:
+#   Ignore differences in configuration that is part of the topology registry
+#   Ignore differences on shared host
+#   Ignore differences by instance
+
+dsconfig set-trust-manager-provider-prop \
+    --provider-name 'Blind Trust'  \
+    --set enabled:true 
+
+dsconfig create-external-server \
+    --server-name 'Banking API'  \
+    --type api  \
+    --set base-url:https://babbtx-aspsp.herokuapp.com  \
+    --set trust-manager-provider:JVM-Default  \
+    --set allowed-header:Accept  \
+    --set allowed-header:Authorization  \
+    --set allowed-header:Host 
+
+dsconfig create-external-server \
+    --server-name PAP  \
+    --type policy  \
+    --set base-url:https://${PAP_INTERNAL_HOSTNAME}:${PAP_HTTPS_PORT}  \
+    --set hostname-verification-method:allow-all  \
+    --set key-manager-provider:Null  \
+    --set 'trust-manager-provider:Blind Trust'  \
+    --set shared-secret:AABmDqw5Ynizf1SZoiNRBdvyAv7/SZ8RsdE=  \
+    --set 'branch:Default Policies' 
+
+dsconfig create-external-server \
+    --server-name 'pingdirectory consent'  \
+    --type consent-service  \
+    --set base-url:https://${PD_INTERNAL_HOSTNAME}:${PD_HTTPS_PORT}/consent/v1  \
+    --set hostname-verification-method:allow-all  \
+    --set 'trust-manager-provider:Blind Trust'  \
+    --set 'user-name:Consent Admin'  \
+    --set 'password:Consent Admin'
+
+dsconfig create-external-server \
+    --server-name 'pingdirectory ldap'  \
+    --type ping-identity-ds  \
+    --set server-host-name:${PD_INTERNAL_HOSTNAME}  \
+    --set server-port:${PD_LDAPS_PORT}  \
+    --set 'location:${LOCATION}'  \
+    --set 'bind-dn:cn=Governance User,cn=Root DNs,cn=config'  \
+    --set 'password:${CN_ROOT_PASSWORD}'  \
+    --set connection-security:ssl  \
+    --set key-manager-provider:Null  \
+    --set 'trust-manager-provider:Blind Trust' 
+
+dsconfig create-external-server \
+    --server-name PingFederate  \
+    --type http  \
+    --set base-url:https://babb-pf.ping-eng.com  \
+    --set trust-manager-provider:JVM-Default 
+
+dsconfig create-load-balancing-algorithm \
+    --algorithm-name 'PingDirectory LBA'  \
+    --type failover  \
+    --set enabled:true  \
+    --set 'backend-server:pingdirectory ldap'  \
+    --set use-location:false 
+
+dsconfig set-store-adapter-prop \
+    --adapter-name UserStoreAdapter  \
+    --set enabled:true  \
+    --set 'load-balancing-algorithm:PingDirectory LBA'  \
+    --set create-dn-pattern:entryUUID=server-generated,ou=people,dc=example,dc=com 
+
+dsconfig create-scim-resource-type \
+    --type-name Users  \
+    --type pass-through  \
+    --set enabled:true  \
+    --set endpoint:Users  \
+    --set primary-store-adapter:UserStoreAdapter 
+
+dsconfig create-access-token-validator \
+    --validator-name mock  \
+    --type mock  \
+    --set enabled:true 
+
+dsconfig create-token-resource-lookup-method \
+    --validator-name mock  \
+    --method-name 'User match SCIM mail to token email'  \
+    --type scim  \
+    --set evaluation-order-index:1  \
+    --set scim-resource-type:Users  \
+    --set 'match-filter:mail eq "%email%"' 
+
+dsconfig create-token-resource-lookup-method \
+    --validator-name mock  \
+    --method-name 'User match SCIM uid to token sub'  \
+    --type scim  \
+    --set evaluation-order-index:2  \
+    --set scim-resource-type:Users  \
+    --set 'match-filter:uid eq "%sub%"' 
+
+dsconfig create-access-token-validator \
+    --validator-name pingfederate  \
+    --type ping-federate  \
+    --set enabled:true  \
+    --set authorization-server:PingFederate  \
+    --set client-id:pingdirectory  \
+    --set client-secret:AAAx8EvyJiQ6k8APN8EqjxhEIYOXUakg+iE= 
+
+dsconfig create-token-resource-lookup-method \
+    --validator-name pingfederate  \
+    --method-name 'User match SCIM mail to token email'  \
+    --type scim  \
+    --set evaluation-order-index:1  \
+    --set scim-resource-type:Users  \
+    --set 'match-filter:mail eq "%email%"' 
+
+dsconfig create-advice \
+    --advice-name Redis  \
+    --type third-party  \
+    --set advice-id:update-redis-state  \
+    --set extension-class:com.pingidentity.davidbabbitt.RedisAdvice  \
+    --set extension-argument:hostname=redis 
+
+dsconfig create-gateway-api-endpoint \
+    --endpoint-name 'Bank Accounts'  \
+    --set service:Banking.Accounts  \
+    --set inbound-base-path:/open-banking/v2.0/accounts  \
+    --set outbound-base-path:/OpenBanking/v2/accounts  \
+    --set 'api-server:Banking API' 
+
+dsconfig create-gateway-api-endpoint \
+    --endpoint-name 'Bank Balances'  \
+    --set service:Banking.Balances  \
+    --set inbound-base-path:/open-banking/v2.0/balances  \
+    --set outbound-base-path:/OpenBanking/v2/balances  \
+    --set 'api-server:Banking API' 
+
+dsconfig create-gateway-api-endpoint \
+    --endpoint-name 'Specific Bank Account'  \
+    --set service:Banking.Accounts  \
+    --set inbound-base-path:/open-banking/v2.0/accounts/{accountId}  \
+    --set outbound-base-path:/OpenBanking/v2/accounts/{accountId}  \
+    --set 'api-server:Banking API' 
+
+dsconfig create-gateway-api-endpoint \
+    --endpoint-name 'Specific Bank Account Balance'  \
+    --set service:Banking.Balances  \
+    --set inbound-base-path:/open-banking/v2.0/accounts/{accountId}/balances  \
+    --set outbound-base-path:/OpenBanking/v2/accounts/{accountId}/balances  \
+    --set 'api-server:Banking API' 
+
+dsconfig create-error-template \
+    --template-name 'JSON API error format'  \
+    --set 'velocity-template:{\n\
+  "errors": [{\n\
+    "id": "$correlationId",\n\
+    "status": $status,\n\
+    "detail": "$message"\n\
+  }]\n\
+}' 
+
+dsconfig create-gateway-api-endpoint \
+    --endpoint-name 'Money Transfer'  \
+    --set 'error-template:JSON API error format'  \
+    --set 'service:Internal Banking API.Transfer'  \
+    --set inbound-base-path:/private/transfers  \
+    --set outbound-base-path:/private/transfers  \
+    --set 'api-server:Banking API'  \
+    --set disable-response-processing:true 
+
+dsconfig set-policy-decision-service-prop \
+    --set pdp-mode:external  \
+    --set policy-server:PAP  \
+    --set trust-framework-version:v2  \
+    --set decision-response-view:decision-tree  \
+    --set decision-response-view:evaluated-entities  \
+    --set decision-response-view:request 
+
+dsconfig set-http-servlet-cross-origin-policy-prop \
+    --policy-name 'Development Cross-Origin Policy'  \
+    --set cors-allowed-origins:* 
+
+dsconfig set-http-servlet-extension-prop \
+    --extension-name Gateway  \
+    --set 'cross-origin-policy:Development Cross-Origin Policy' 
+
+dsconfig set-http-servlet-extension-prop \
+    --extension-name 'Open Banking'  \
+    --set 'consent-server:pingdirectory consent' 
+
+dsconfig set-log-publisher-prop \
+    --publisher-name 'Debug Trace Logger'  \
+    --set enabled:true  \
+    --remove 'retention-policy:File Count Retention Policy'  \
+    --add 'retention-policy:Retain Two Files Retention Policy' 
+
+dsconfig set-log-publisher-prop \
+    --publisher-name 'File-Based Error Logger'  \
+    --add default-severity:info 
+
+dsconfig create-web-application-extension \
+    --extension-name Delegator  \
+    --set base-context-path:/delegator  \
+    --set document-root-directory:webapps/delegator/app 
+
+dsconfig set-connection-handler-prop \
+    --handler-name 'HTTPS Connection Handler'  \
+    --add 'http-servlet-extension:Open Banking'  \
+    --add web-application-extension:Delegator 
+
+

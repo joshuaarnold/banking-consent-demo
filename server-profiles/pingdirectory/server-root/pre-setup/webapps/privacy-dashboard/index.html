@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Privacy Dashboard</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    
+<meta name="privacy-dashboard/config/environment" content="%7B%22modulePrefix%22%3A%22privacy-dashboard%22%2C%22environment%22%3A%22production%22%2C%22rootURL%22%3A%22/privacy/%22%2C%22locationType%22%3A%22hash%22%2C%22EmberENV%22%3A%7B%22FEATURES%22%3A%7B%7D%2C%22EXTEND_PROTOTYPES%22%3A%7B%22Date%22%3Afalse%7D%7D%2C%22torii%22%3A%7B%22sessionServiceName%22%3A%22toriiSession%22%2C%22allowUnsafeRedirect%22%3Atrue%2C%22providers%22%3A%7B%22ping-oauth2%22%3A%7B%22remoteServiceName%22%3A%22popup%22%2C%22scope%22%3A%22accounts%20urn%3Apingdirectory%3Aconsent%22%2C%22clientId%22%3A%22privacy-dashboard%22%2C%22responseType%22%3A%22token%22%2C%22authUri%22%3A%22https%3A//babb-pf.ping-eng.com/as/authorization.oauth2%22%7D%7D%7D%2C%22APP%22%3A%7B%22PD_HOST_PORT%22%3A%22https%3A//pingdirectory%3A18443%22%2C%22PF_HOST_PORT%22%3A%22https%3A//babb-pf.ping-eng.com%22%2C%22name%22%3A%22privacy-dashboard%22%2C%22version%22%3A%220.9.0+70df9cee%22%7D%2C%22simple-auth%22%3A%7B%22authorizer%22%3A%22simple-auth-authorizer%3Atoken%22%7D%2C%22simple-auth-token%22%3A%7B%22refreshAccessTokens%22%3Atrue%2C%22tokenExpireName%22%3A%22exp%22%2C%22timeFactor%22%3A1%2C%22refreshLeeway%22%3A300%2C%22identificationField%22%3A%22clientId%22%2C%22tokenPropertyName%22%3A%22access_token%22%2C%22serverTokenEndpoint%22%3A%22https%3A//babb-pf.ping-eng.com/as/authorization.oauth2%22%2C%22serverTokenRefreshEndpoint%22%3A%22https%3A//babb-pf.ping-eng.com/as/authorization.oauth2%22%7D%2C%22ember-cli-mirage%22%3A%7B%22usingProxy%22%3Afalse%2C%22useDefaultPassthroughs%22%3Atrue%7D%2C%22PD_HOST_PORT%22%3A%22https%3A//pingdirectory%3A18443%22%2C%22PF_HOST_PORT%22%3A%22https%3A//babb-pf.ping-eng.com%22%2C%22OAUTH2_SCOPES%22%3A%22accounts%20urn%3Apingdirectory%3Aconsent%22%2C%22exportApplicationGlobal%22%3Afalse%7D" />
+
+    <link integrity="" rel="stylesheet" href="./assets/vendor-42a99e6b8007efc4d84011808077a9a6.css">
+    <link integrity="" rel="stylesheet" href="./assets/privacy-dashboard-61aa97c3bda5fea93756192c391dbed3.css">
+
+    
+  </head>
+  <body id="privacy_dashboard">
+    <script type="text/javascript">
+      // this gets environment from meta and replaces the rootURL
+      // with the URL this page is loaded on
+      (function() {
+        var meta = document.querySelector('head meta[name="privacy-dashboard/config/environment"]');
+        var env = meta.content;
+        var envj = JSON.parse(decodeURIComponent(env));
+        envj.rootURL = window.location.pathname;
+        meta.content = encodeURIComponent(JSON.stringify(envj));
+      })();
+    </script>
+
+    
+
+    <div class="torii-iframe-placeholder" style="display:none;"></div>
+    <script src="./assets/vendor-a657de6bec4b2cac6da2acca41b78db0.js" integrity="sha256-43vQZ+Fyj5ipByCcftRubZHPGo+FQemBm6OZzuwZuf8= sha512-hjxL0QW5I1c9MiJyz/+veIHbXJkIxDKoZv5C7DlldPDOi7EvKT9uv7xjS0peLIR+XfkecuANkKpjsESK+6aoQg==" ></script>
+    <script src="./assets/privacy-dashboard-8f51b67880cfe071ca66fb94250ffee1.js" integrity="sha256-c+nJyACYmfFgKVVR9jjf97JWzEkgRbTqMFKWM40MHnM= sha512-s5yGPhGSl8q0W/ER5ywgJJGDJe6Q/r/T0I8kBbxD6xKjzb+KvVI8pm1bEbbD3C5T4RXDPRMX5brOGby3P6LSiw==" ></script>
+
+    <div id="ember-basic-dropdown-wormhole"></div>
+  </body>
+</html>

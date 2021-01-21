@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore-min.js" charset="utf-8"></script>
+
+  <link integrity="" rel="stylesheet" href="../vendor-42a99e6b8007efc4d84011808077a9a6.css">
+  <link integrity="" rel="stylesheet" href="../privacy-dashboard-61aa97c3bda5fea93756192c391dbed3.css">
+  <link integrity="" rel="stylesheet" href="iframe.css">
+  <script src="iframe.js" charset="utf-8" integrity="sha256-WzIRiHvCaSAfdmPXquMipyxSiEWc/3c857eSvkLM6Z0= sha512-DhDEvkMbamAKBETWiqhgArbBuAIdiy/lnSogUknaF+YHQjGRwnyGkC8OY937CL+D780jal+lzrwpTU1C5qOpwQ==" ></script>
+  <style>
+
+  </style>
+</head>
+<body id="consent-container">
+
+<form id="details-form">
+
+<h4 class="text-section-title">Details</h4>
+
+<p class="text-body">Optionally, choose details you want included with your care plan:</p>
+
+<div class="details-form-checkbox-row input-row" style="margin-bottom: 0;">
+  <label class="input-checkbox stacked">
+    <span class="label-text" data-id="label">Health conditions</span>
+    <input data-include="conditions" type="checkbox">
+    <span class="icon"></span>
+  </label>
+</div>
+
+<h4 class="text-section-title">Friends and Family</h4>
+
+<p class="text-body">Please list the friends and family with whom you will share your care plan:</p>
+
+<div class="details-form-email-row input-row input-row--line-height">
+  <label class="input-width-medium input-text">
+    <!--<span class="label-text" data-id="label">Placeholder text</span>-->
+    <span class="input-container">
+      <input placeholder="friend@example.com" type="text" autocomplete="nope" value="">
+    </span>
+  </label>
+</div>
+
+</form>
+
+<script type="text/javascript">
+
+  var $form = $("#details-form");
+  var defaultConsentDetails = {included: {conditions: false}, sharedWith: []};
+  var consentDetails;
+
+  // this script runs after the consent records are loaded by the parent frame
+  // it renders the permissions authorized by the consent record
+  App.onInitialize(function(details) {
+    consentDetails = details || defaultConsentDetails;
+    var included = consentDetails.included || defaultConsentDetails.included;
+    _.each(included, function(checked, include) {
+      var $checkbox = $form.find("input[type=checkbox][data-include=" + include + "]");
+      $checkbox.prop("checked", checked);
+    });
+    var emails = consentDetails.sharedWith || defaultConsentDetails.sharedWith;
+    var $row = $form.find(".details-form-email-row");
+    for (var i = 0; i < emails.length; i++) {
+      if (i === 0) {
+        $row.find("input").val(emails[i]);
+      }
+      else {
+        var $newRow = $row.clone();
+        $newRow.find("input").val(emails[i]);
+        $newRow.insertAfter($row);
+        $row = $newRow;
+      }
+    }
+    App.resize();
+  });
+
+  var saveDetails = _.debounce(function() {
+    ["conditions"].forEach(function(include) {
+      var $checkbox = $form.find("input[type=checkbox][data-include=" + include + "]");
+      consentDetails.included[include] = $checkbox.prop("checked");
+    });
+    var emails = [];
+    $form.find("input[type=text]").each(function() {
+      var $elt = $(this);
+      if ($elt.val() !== "") {
+        emails.push($elt.val());
+      }
+    });
+    consentDetails.sharedWith = emails;
+    App.saveConsentDetails(consentDetails);
+  }, 200);
+
+  $form.on("change", "input[type=checkbox]", function(evt) {
+    saveDetails();
+  });
+
+  $form.on("keyup", "input[type=text]", function(evt) {
+    var $target = $(evt.target);
+    // add or remove a row if necessary
+    var $row = $target.parents(".input-row");
+    if ($target.val().trim() !== "") {
+      if ($row.next(".input-row").length === 0) {
+        var $newRow = $row.clone();
+        $newRow.find("input").val("");
+        $newRow.insertAfter($row);
+        App.resize();
+      }
+    }
+    else {
+      var $nextRow = $row.next(".input-row");
+      if ($nextRow.find("input").val() === "") {
+        $nextRow.remove();
+        App.resize();
+      }
+    }
+    saveDetails();
+  });
+</script>
+
+
+</body>
+</html>

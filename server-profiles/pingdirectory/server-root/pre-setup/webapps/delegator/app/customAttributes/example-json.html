@@ -1,0 +1,209 @@
+<!-- This is an example file for a JSON attribute w/o nested keys -->
+<!-- The keys are used to display fields, the values are taken from the inputs -->
+<!-- This only handles the first value in a multivalue array -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <link rel="stylesheet" href="../assets/css/ui-library--v4.6.1.css">
+    <link rel="stylesheet" href="../assets/iframe--v1.css">
+    <script src="../assets/iframe--v1.min.js"></script>
+    <style>
+      .TextField {
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <fieldset class="field-set-component">
+      <legend>
+        Example JSON Email
+      </legend>
+
+      <div class="SelectField">
+        <label class="input-width-medium no-bottom-margin">
+          <div class="label-text">
+            Type
+          </div>
+          <div class="input-selection-list">
+            <div class="input-selection-list-items">
+              <div id="select-example" class="list">
+              </div>
+            </div>
+          </div>
+        </label>
+      </div>
+  
+      <div class="TextField">
+        <label id="text-field-label" class="input-width-medium no-bottom-margin input-text">
+          <span class="label-text">
+            Email
+          </span>
+          <span class="input-container">
+            <input id="text-field-example" type="text" />
+            <div id="text-field-error" class="input-message" hidden>
+              <div class="input-message__icon"></div>
+              <div class="input-message__text"></div>
+            </div>
+          </span>
+        </label>
+      </div>
+    </fieldset>
+
+    <script type="text/javascript">
+      /**
+       * Use pre-ES6 syntax if needed to support older browsers since this does not run through
+       * a transpiler for conversion.
+       */
+      var initialValue = {
+        type: undefined,
+        value: '',
+      };
+      var selectableTypes = ['Personal', 'Work', 'Other'];
+      var hasError = false;
+
+      // Loop through all selectableTypes and create a radio button for each one
+      for(var i = 0; i < selectableTypes.length; i++) {
+        var label = document.createElement('label');
+        label.className = 'input-radio input-radio group stacked';
+        var span = document.createElement('span');
+        span.className = 'label-text';
+        span.appendChild(document.createTextNode(selectableTypes[i]));
+        var input = document.createElement('input');
+        input.type = 'radio';
+        input.value = selectableTypes[i];
+        input.name = 'type-select';
+        var circle = document.createElement('div');
+        circle.className = 'circle';
+
+        label.appendChild(span);
+        label.appendChild(input);
+        label.appendChild(circle);
+
+        document.getElementById('select-example').appendChild(label);
+      }
+
+      // Once created, add onclick events to each of them - must be done after creation
+      var labels = document.getElementsByName('type-select');
+      for (var i = 0; i < labels.length; i++) {
+        labels[i].onclick = function() {
+          initialValue.type = this.value;
+          CustomAttribute.sendAttributeValue([initialValue]);
+        };
+      }
+
+      // Resize after adding all of the radio buttons since these are added after initial load
+      // and will affect the size needed by the iframe to display the new presentation
+      CustomAttribute.resize();
+
+      // This function gets called when the attribute is initialized
+      CustomAttribute.onInitialize(function (data) {
+        if (data && data.value && data.value.length) {
+          var emailType = data.value[0].type;
+          var emailValue = data.value[0].value;
+          var typeElement = document.querySelector('input[value="' + emailType + '"]');
+          var emailElement = document.getElementById('text-field-example');
+          typeElement
+            ? typeElement.checked = true
+            : console.error('No input element found with value of "' + emailType + '"');
+          emailElement.value = emailValue;
+          initialValue.type = emailType;
+          initialValue.value = emailValue;
+        }
+
+        // Set the label to the displayName if provided
+        if (data && data.metaData && data.metaData.displayName) {
+          document.getElementsByTagName('legend')[0].textContent = data.metaData.displayName;
+        }
+      });
+
+      CustomAttribute.onUpdate(function (data) {
+        var newValue = data && data.form && data.form.attributes && data.form.attributes[CustomAttribute.attribute] && data.form.attributes[CustomAttribute.attribute][0];
+        var checkedRadio = document.querySelector('input[name="type-select"]:checked');
+        var emailElement = document.getElementById('text-field-example');
+        var error = data && data.form && data.form.errors && data.form.errors[CustomAttribute.attribute];
+
+        if (error) {
+          var errorMessage = error && error.message;
+          showErrorState(errorMessage);
+        }
+
+        if (!newValue) {
+          // Reset fields if they get cleared by the form
+          if (checkedRadio) {
+            initialValue.type = undefined;
+            checkedRadio.checked = false;
+          }
+          if (emailElement.value) {
+            initialValue.value = '';
+            emailElement.value = '';
+          }
+          hideErrorState();
+          if (CustomAttribute.metaData.required) {
+            document.getElementById('text-field-label').classList.add('required');
+          }
+        } else if (newValue && newValue[0]) {
+          // Update the values for the fields if they are updated from the form
+          var emailType = newValue[0].type;
+          var typeElement = document.querySelector('input[value="' + emailType + '"]');
+          
+          if (emailType) {
+            typeElement
+              ? typeElement.checked = true
+              : console.error('No input element found with value of "' + emailType + '"');
+          }
+          emailElement.value = newValue[0].value;
+        }
+      });
+
+      function hideErrorState() {
+        if (!hasError) return;
+        document.getElementById('text-field-error').hidden = true;
+        document.getElementById('text-field-label').classList.remove('input-message');
+        CustomAttribute.resize(originalHeight);
+        hasError = false;
+      }
+
+      function showErrorState(errorMessage) {
+        if (hasError) return;
+        document.getElementById('text-field-error').hidden = false;
+        document.getElementById('text-field-label').classList.add('input-message');
+
+        // Add the message from the server to the error message box
+        if (errorMessage) document.getElementsByClassName('input-message__text')[0].textContent = errorMessage;
+
+        // If input is already focused, we can simply resize, otherwise we'll need to specify the
+        // height since the element is hidden
+        if (document.querySelector('input:hover')) {
+          CustomAttribute.resize();
+        } else {
+          // 42px is roughly the height of the message box we'll need to account for if hidden
+          CustomAttribute.resize(originalHeight + 42);
+        }
+        hasError = true;
+      }
+
+      // This function is triggered by the event listener added below
+      function handleChange(event) {
+        var input = event.target.value;
+
+        // Tell the input when to show the required bar
+        if (input) {
+          document.getElementById('text-field-label').classList.remove('required');
+        } else if (CustomAttribute.metaData.required) {
+          document.getElementById('text-field-label').classList.add('required');
+        }
+
+        // Send custom attribute's new value on each change to the form
+        initialValue.value = input;
+        CustomAttribute.sendAttributeValue([initialValue]);
+      }
+
+      // When the iframe is loaded, add the following event listener
+      document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('text-field-example').addEventListener('input', handleChange);
+      });
+    </script>
+  </body>
+</html>

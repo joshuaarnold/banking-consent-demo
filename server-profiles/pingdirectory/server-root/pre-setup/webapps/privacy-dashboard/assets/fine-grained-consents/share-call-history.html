@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
+
+  <link integrity="" rel="stylesheet" href="../vendor-42a99e6b8007efc4d84011808077a9a6.css">
+  <link integrity="" rel="stylesheet" href="../privacy-dashboard-61aa97c3bda5fea93756192c391dbed3.css">
+  <link integrity="" rel="stylesheet" href="iframe.css">
+  <script src="iframe.js" charset="utf-8" integrity="sha256-WzIRiHvCaSAfdmPXquMipyxSiEWc/3c857eSvkLM6Z0= sha512-DhDEvkMbamAKBETWiqhgArbBuAIdiy/lnSogUknaF+YHQjGRwnyGkC8OY937CL+D780jal+lzrwpTU1C5qOpwQ==" ></script>
+  <style>
+
+  </style>
+</head>
+<body id="consent-container">
+
+<h4 class="text-section-title">Minimum Call Duration</h4>
+
+<p class="text-body">
+  You can optionally set a minimum call duration, in minutes. Only calls
+  above this minimum will be shared.
+</p>
+
+<form>
+  <div data-id="input-row" class="input-row input-row--line-height">
+    <label data-id="form-text-field" class="input-width-small input-text">
+      <span class="input-container" data-id="text-field_container">
+        <input placeholder="0 minutes" data-id="form-text-field-input" type="text" autocomplete="nope" value="">
+      </span>
+    </label>
+  </div>
+</form>
+
+<script type="text/javascript">
+
+  var $form = $("form");
+
+  // this script runs after the consent records are loaded by the parent frame
+  // it renders the permissions authorized by the consent record
+  window.App.onInitialize(function(details) {
+    var minimum = details.minimum;
+    if (minimum && minimum > 0) {
+      $form.find("input").val(minimum);
+    }
+  });
+
+  $form.on("keyup", "input", function(evt) {
+    var $target = $(evt.target);
+    if ($target.val().trim() !== "") {
+      var parseInt = Number.parseInt || window.parseInt;
+      var minimum = parseInt($target.val().trim());
+      App.saveConsentDetails({minimum: minimum});
+    }
+    else {
+      App.saveConsentDetails({minimum: 0});
+    }
+  });
+</script>
+
+
+</body>
+</html>

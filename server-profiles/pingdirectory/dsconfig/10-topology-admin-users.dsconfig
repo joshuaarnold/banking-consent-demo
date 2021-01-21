@@ -1,0 +1,13 @@
+dsconfig create-topology-admin-user \
+    --user-name "Consent Admin"  \
+    --set "alternate-bind-dn:cn=Consent Admin"  \
+    --set inherit-default-root-privileges:false \
+    --set "password:Consent Admin"  \
+
+dsconfig create-topology-admin-user \
+  --user-name "Consent Service Account" \
+  --set "description:Consent API internal account" \
+  --set "alternate-bind-dn:cn=consent service account" \
+  --set inherit-default-root-privileges:false \
+  --set "password:${CN_ROOT_PASSWORD}" \
+  --set privilege:bypass-acl

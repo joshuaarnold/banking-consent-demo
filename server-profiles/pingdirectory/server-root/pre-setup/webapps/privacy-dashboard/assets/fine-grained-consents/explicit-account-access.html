@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore-min.js" charset="utf-8"></script>
+
+  <link integrity="" rel="stylesheet" href="../vendor-42a99e6b8007efc4d84011808077a9a6.css">
+  <link integrity="" rel="stylesheet" href="../privacy-dashboard-61aa97c3bda5fea93756192c391dbed3.css">
+  <link integrity="" rel="stylesheet" href="iframe.css">
+  <script src="iframe.js" charset="utf-8" integrity="sha256-WzIRiHvCaSAfdmPXquMipyxSiEWc/3c857eSvkLM6Z0= sha512-DhDEvkMbamAKBETWiqhgArbBuAIdiy/lnSogUknaF+YHQjGRwnyGkC8OY937CL+D780jal+lzrwpTU1C5qOpwQ==" ></script>
+  <style>
+
+  </style>
+</head>
+<body id="consent-container">
+
+<h4 class="text-section-title">Brokers</h4>
+
+<p class="text-body">Please list brokers with whom you will share your account data:</p>
+
+<form id="broker-list">
+  <div data-id="input-row" class="input-row input-row--line-height">
+    <label data-id="form-text-field" class="input-width-medium input-text">
+      <!--<span class="label-text" data-id="label">Placeholder text</span>-->
+      <span class="input-container" data-id="text-field_container">
+        <input placeholder="Broker Username" data-id="form-text-field-input" type="text" autocomplete="nope" value="">
+      </span>
+    </label>
+  </div>
+</form>
+
+<script type="text/javascript">
+
+  var $brokerListForm = $("#broker-list");
+  var consentDetails;
+
+  // this script runs after the consent records are loaded by the parent frame
+  // it renders the permissions authorized by the consent record
+  window.App.onInitialize(function(details) {
+    consentDetails = details || {};
+    var usernames = consentDetails.sharedWith || [];
+    var $row = $brokerListForm.find(".input-row");
+    for (var i = 0; i < usernames.length; i++) {
+      if (i == 0) {
+        $row.find("input").val(usernames[i]);
+      }
+      else {
+        var $newRow = $row.clone();
+        $newRow.find("input").val(usernames[i]);
+        $newRow.insertAfter($row);
+        $row = $newRow;
+      }
+    }
+    App.resize();
+  });
+
+  var saveBrokerList = _.debounce(function() {
+    var usernames = [];
+    $brokerListForm.find("input").each(function() {
+      var $elt = $(this);
+      if ($elt.val() !== "") {
+        usernames.push($elt.val());
+      }
+    });
+    consentDetails.sharedWith = usernames;
+    window.App.saveConsentDetails(consentDetails);
+  }, 200);
+
+  $brokerListForm.on("keyup", "input", function(evt) {
+    var $target = $(evt.target);
+    // add or remove a row if necessary
+    var $row = $target.parents(".input-row");
+    if ($target.val().trim() !== "") {
+      if ($row.next(".input-row").length === 0) {
+        var $newRow = $row.clone();
+        $newRow.find("input").val("");
+        $newRow.insertAfter($row);
+        App.resize();
+      }
+    }
+    else {
+      var $nextRow = $row.next(".input-row");
+      if ($nextRow.find("input").val() === "") {
+        $nextRow.remove();
+        App.resize();
+      }
+    }
+    saveBrokerList();
+  });
+</script>
+
+
+</body>
+</html>
