@@ -1,0 +1,23 @@
+<div class="table-header clearfix">
+  {{#bs-button class="pull-right btn-outline-dark btn-light" onClick=(action "refresh")}}
+    {{fa-icon "refresh"}}
+  {{/bs-button}}
+  <h5>{{#link-to "accounts"}}Accounts{{/link-to}} > #{{accountId}}</h5>
+</div>
+
+<p></p>
+
+<p>
+  <dl class="row">
+    <dt class="col-sm-3">Type</dt>
+    <dd class="col-sm-9">{{account.accountType}}</dd>
+    <dt class="col-sm-3">Sub-Type</dt>
+    <dd class="col-sm-9">{{account.accountSubType}}</dd>
+    <dt class="col-sm-3">Sort Code</dt>
+    <dd class="col-sm-9">{{account.accountSortCode}}</dd>
+    {{#if balance}}
+      <dt class="col-sm-3">Balance</dt>
+      <dd class="col-sm-9">{{balance.balanceAmount}}</dd>
+    {{/if}}
+  </dl>
+</p>

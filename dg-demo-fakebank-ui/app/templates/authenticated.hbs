@@ -1,0 +1,23 @@
+<div class="full-height row no-gutters">
+  <div id="main-content" class="col-lg-7">
+    {{nav-bar}}
+    <section class="main-content-tabs container">
+      {{#bs-nav type="tabs" as |nav|}}
+        {{#nav.item}}
+          {{#nav.link-to "accounts"}}Accounts{{/nav.link-to}}
+        {{/nav.item}}
+        {{#nav.item}}
+          {{#nav.link-to "transfers.new"}}Transfer{{/nav.link-to}}
+        {{/nav.item}}
+      {{/bs-nav}}
+    </section>
+    <section class="main-content-outlet container">
+      {{outlet}}
+    </section>
+  </div>
+  <div id="main-api-history" class="col-lg-5">
+    <section class="container">
+      {{api-history}}
+    </section>
+  </div>
+</div>

@@ -1,0 +1,23 @@
+<section id="transfer-form" class="row">
+  <div class="col-lg-8">
+    {{#bs-form formLayout="horizontal" model=model onSubmit=(action "submit") as |form|}}
+      {{form.element label="From" type="text" controlType="text" placeholder="Account number" property="fromAccountId" required=true}}
+      {{form.element label="To" type="text" controlType="text" placeholder="Account number" property="toAccountId" required=true}}
+      {{form.element label="Amount" type="text" controlType="text" placeholder="Amount without currency" property="amount" required=true}}
+      {{#bs-button type="primary" buttonType="submit" disabled=model.saving}}Transfer{{/bs-button}}
+
+      <div class="alerts-container">
+        {{#unless model.errors.isEmpty}}
+          {{#unless model.saving}}
+            {{#each model.errors.messages as |message|}}
+              {{#bs-alert dismissible=false type="warning"}}
+                <strong>{{message}}</strong>
+              {{/bs-alert}}
+            {{/each}}
+          {{/unless}}
+        {{/unless}}
+      </div>
+
+    {{/bs-form}}
+  </div>
+</section>

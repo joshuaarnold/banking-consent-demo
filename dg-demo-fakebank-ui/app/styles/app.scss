@@ -1,0 +1,72 @@
+
+@import "ember-bootstrap/bootstrap";
+
+body, html {
+  font-size: 14px;
+  height: 100%;
+}
+
+body > .ember-view {
+  height: 100%;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.models-table-wrapper {
+  .globalSearch {
+    margin-bottom: 1em;
+  }
+}
+
+.transaction-negative {
+  color: red;
+}
+
+.navbar-brand, .navbar-brand:hover {
+  text-decoration: none;
+  color: white;
+}
+
+.table-header {
+  padding-bottom: 12px;
+}
+
+.table-header h5 {
+  line-height: 34px;
+  height: 34px;
+}
+
+#main-content .main-content-tabs {
+  padding-top: 20px;
+}
+
+#main-content .main-content-outlet {
+  padding-top: 20px;
+  padding-bottom: 45px;
+}
+
+#main-api-history {
+  font-size: 0.85em;
+  background-color: #dddddd;
+  -webkit-box-shadow: inset 10px 0px 15px -10px rgba(0,0,0,1);
+  -moz-box-shadow: inset 10px 0px 15px -10px rgba(0,0,0,1);
+  box-shadow: inset 10px 0px 15px -10px rgba(0,0,0,1);
+}
+
+#main-api-history .container {
+  padding-left: 40px;
+}
+
+#transfer-form {
+  padding-top: 20px;
+}
+
+#transfer-form .alerts-container {
+  margin-top: 15px;
+
+  .alert {
+    margin-top: 5px;
+  }
+}

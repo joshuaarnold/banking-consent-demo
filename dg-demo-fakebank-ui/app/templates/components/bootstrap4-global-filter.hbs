@@ -1,0 +1,16 @@
+<div class={{themeInstance.globalFilterWrapper}}>
+  <div class="form-inline globalSearch">
+    <div class="form-group">
+      <label class="mr-2">{{themeInstance.messages.searchLabel}}</label>
+      {{input
+        type="text"
+        value=value
+        class="form-control mr-2 filterString"
+        enter=(action "")
+        placeholder=themeInstance.messages.searchPlaceholder}}
+      <button class="clearFilterIcon mr-2 btn btn-sm btn-secondary" disabled={{unless globalFilterUsed "disabled"}} onclick={{action (mut value) ""}} type="button">
+        <i class={{themeInstance.clearFilterIcon}}></i>
+      </button>
+    </div>
+  </div>
+</div>

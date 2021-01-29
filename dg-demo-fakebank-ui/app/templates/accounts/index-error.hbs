@@ -1,0 +1,9 @@
+<div class="table-header clearfix">
+  {{#bs-button class="pull-right btn-outline-dark btn-light" onClick=(action "refresh")}}
+    {{fa-icon "refresh"}}
+  {{/bs-button}}
+</div>
+
+{{#bs-alert dismissible=false type="warning"}}
+  <strong>Not authorized!</strong>
+{{/bs-alert}}
