@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Bank Browser</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    
+<meta name="dg-demo-fakebank-ui/config/environment" content="%7B%22modulePrefix%22%3A%22dg-demo-fakebank-ui%22%2C%22environment%22%3A%22development%22%2C%22rootURL%22%3A%22/%22%2C%22locationType%22%3A%22hash%22%2C%22EmberENV%22%3A%7B%22FEATURES%22%3A%7B%7D%2C%22EXTEND_PROTOTYPES%22%3A%7B%22Date%22%3Afalse%7D%7D%2C%22APP%22%3A%7B%22name%22%3A%22dg-demo-fakebank-ui%22%2C%22version%22%3A%220.0.0+b4185754%22%7D%2C%22OPEN_BANKING_BASE_URL%22%3A%22https%3A//babbtx-aspsp.herokuapp.com%22%2C%22OPEN_BANKING_API_NAMESPACE%22%3A%22OpenBanking/v2%22%2C%22OAUTH2_AUTHORIZATION_URL%22%3A%22https%3A//babb-pf.ping-eng.com/as/authorization.oauth2%22%2C%22OAUTH2_CLIENT_ID%22%3A%22openbank-browser%22%2C%22exportApplicationGlobal%22%3Atrue%7D" />
+<script src="/ember-cli-live-reload.js" type="text/javascript"></script>
+
+    <link integrity="" rel="stylesheet" href="./assets/vendor.css">
+    <link integrity="" rel="stylesheet" href="./assets/dg-demo-fakebank-ui.css">
+
+    
+  </head>
+  <body>
+    <!-- it's ok if this doesn't exist. it's a way to override the compiled configuration. -->
+    <script src="./assets/config.js"></script>
+
+    <script type="text/javascript">
+      // this gets environment from meta and replaces the rootURL
+      // with the URL this page is loaded on
+      // and optionally replaces some environment configuration
+      // with values from config.js
+      (function() {
+        var meta = document.querySelector('head meta[name="dg-demo-fakebank-ui/config/environment"]');
+        var env = meta.content;
+        var envj = JSON.parse(decodeURIComponent(env));
+        envj.rootURL = window.location.pathname;
+        // replace environment variables
+        if (typeof(RuntimeConfig) !== "undefined") {
+          Object.keys(RuntimeConfig).forEach(function(key) {
+            envj[key] = RuntimeConfig[key];
+          });
+        }
+        meta.content = encodeURIComponent(JSON.stringify(envj));
+      })();
+    </script>
+
+    
+
+    <script src="./assets/vendor.js"></script>
+    <script src="./assets/dg-demo-fakebank-ui.js"></script>
+
+    <div id="ember-bootstrap-wormhole"></div>
+  </body>
+</html>
